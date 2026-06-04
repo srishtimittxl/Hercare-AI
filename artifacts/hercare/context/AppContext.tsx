@@ -26,6 +26,10 @@ export type SymptomType =
   | "Back Pain"
   | "Breast Tenderness";
 export type Severity = "Mild" | "Moderate" | "Severe";
+export type PeriodRegularity = "Regular" | "Irregular" | "Very Irregular";
+export type AgeGroup = "13-17" | "18-24" | "25-34" | "35-44" | "45+";
+export type KnownCondition = "PCOS" | "Endometriosis" | "Fibroids" | "Thyroid" | "None";
+export type DietType = "Vegetarian" | "Non-Vegetarian" | "Vegan";
 
 export interface CycleLog {
   id: string;
@@ -55,6 +59,17 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export interface HealthProfile {
+  name: string;
+  periodRegularity: PeriodRegularity | "";
+  typicalFlow: FlowLevel | "";
+  averageCycleLength: number;
+  ageGroup: AgeGroup | "";
+  conditions: KnownCondition[];
+  dietType: DietType | "";
+  onboardingComplete: boolean;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
@@ -64,6 +79,9 @@ export interface UserProfile {
 interface AppContextType {
   profile: UserProfile;
   setProfile: (p: UserProfile) => void;
+
+  healthProfile: HealthProfile;
+  setHealthProfile: (p: HealthProfile) => void;
 
   cycleLogs: CycleLog[];
   addCycleLog: (log: Omit<CycleLog, "id">) => void;
@@ -90,6 +108,17 @@ const defaultProfile: UserProfile = {
   name: "User",
   email: "",
   averageCycleLength: 28,
+};
+
+const defaultHealthProfile: HealthProfile = {
+  name: "",
+  periodRegularity: "",
+  typicalFlow: "",
+  averageCycleLength: 28,
+  ageGroup: "",
+  conditions: [],
+  dietType: "",
+  onboardingComplete: false,
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -171,6 +200,7 @@ function calcCycleStats(logs: CycleLog[]): {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfileState] = useState<UserProfile>(defaultProfile);
+  const [healthProfile, setHealthProfileState] = useState<HealthProfile>(defaultHealthProfile);
   const [cycleLogs, setCycleLogs] = useState<CycleLog[]>([]);
   const [moodLogs, setMoodLogs] = useState<MoodLog[]>([]);
   const [symptomLogs, setSymptomLogs] = useState<SymptomLog[]>([]);
@@ -179,14 +209,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [p, c, m, s, ch] = await Promise.all([
+        const [p, hp, c, m, s, ch] = await Promise.all([
           AsyncStorage.getItem("hercare_profile"),
+          AsyncStorage.getItem("hercare_health_profile"),
           AsyncStorage.getItem("hercare_cycles"),
           AsyncStorage.getItem("hercare_moods"),
           AsyncStorage.getItem("hercare_symptoms"),
           AsyncStorage.getItem("hercare_chat"),
         ]);
         if (p) setProfileState(JSON.parse(p));
+        if (hp) setHealthProfileState(JSON.parse(hp));
         if (c) setCycleLogs(JSON.parse(c));
         if (m) setMoodLogs(JSON.parse(m));
         if (s) setSymptomLogs(JSON.parse(s));
@@ -198,6 +230,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setProfile = useCallback((p: UserProfile) => {
     setProfileState(p);
     AsyncStorage.setItem("hercare_profile", JSON.stringify(p));
+  }, []);
+
+  const setHealthProfile = useCallback((p: HealthProfile) => {
+    setHealthProfileState(p);
+    AsyncStorage.setItem("hercare_health_profile", JSON.stringify(p));
+    setProfileState((prev) => ({ ...prev, name: p.name || prev.name }));
+    AsyncStorage.getItem("hercare_profile").then((raw) => {
+      const existing = raw ? JSON.parse(raw) : defaultProfile;
+      AsyncStorage.setItem("hercare_profile", JSON.stringify({ ...existing, name: p.name || existing.name }));
+    });
   }, []);
 
   const addCycleLog = useCallback((log: Omit<CycleLog, "id">) => {
@@ -259,6 +301,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         profile,
         setProfile,
+        healthProfile,
+        setHealthProfile,
         cycleLogs,
         addCycleLog,
         updateCycleLog,

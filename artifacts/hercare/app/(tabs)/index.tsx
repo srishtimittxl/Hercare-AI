@@ -1,8 +1,10 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React from "react";
+import { fetch } from "expo/fetch";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -17,6 +19,31 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import { MOOD_META } from "@/components/MoodChip";
 import type { MoodType, SymptomType } from "@/context/AppContext";
+
+const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
+  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  : "";
+
+const CATEGORY_COLORS: Record<string, string> = {
+  diet: "#5BAD7F",
+  exercise: "#E8A44A",
+  "self-care": "#9B6B9E",
+  supplement: "#E8689A",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  diet: "Diet",
+  exercise: "Exercise",
+  "self-care": "Self-Care",
+  supplement: "Supplement",
+};
+
+type Recommendation = {
+  title: string;
+  description: string;
+  category: string;
+  icon: string;
+};
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—";
@@ -42,41 +69,12 @@ function getMostCommonSymptom(symptomLogs: { symptom: SymptomType }[]): SymptomT
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as SymptomType;
 }
 
-function generateInsights(
-  cycleDay: number | null,
-  avgLen: number,
-  phase: string,
-  moodLogs: { mood: MoodType; date: string }[],
-  symptomLogs: { symptom: SymptomType; date: string }[]
-): string[] {
-  const insights: string[] = [];
-  if (avgLen > 0) {
-    insights.push(`Your average cycle length is ${avgLen} days.`);
-  }
-  if (phase === "Luteal" && symptomLogs.some((s) => s.symptom === "Fatigue")) {
-    insights.push("You often report fatigue before your period.");
-  }
-  if (phase === "Menstrual") {
-    insights.push("Stay hydrated and rest — your body is working hard.");
-  }
-  if (phase === "Ovulation") {
-    insights.push("Energy levels are typically highest around ovulation.");
-  }
-  const commonMood = getMostCommonMood(moodLogs);
-  if (commonMood === "Anxious" || commonMood === "Stressed") {
-    insights.push("Stress management can help regulate your cycle.");
-  }
-  if (insights.length === 0) {
-    insights.push("Log your cycle to get personalized insights.");
-  }
-  return insights.slice(0, 2);
-}
-
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const {
     profile,
+    healthProfile,
     cycleLogs,
     moodLogs,
     symptomLogs,
@@ -92,13 +90,48 @@ export default function HomeScreen() {
 
   const commonMood = getMostCommonMood(moodLogs);
   const commonSymptom = getMostCommonSymptom(symptomLogs);
-  const insights = generateInsights(
-    currentCycleDay,
-    averageCycleLength,
-    currentPhase,
-    moodLogs,
-    symptomLogs
-  );
+
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [recsError, setRecsError] = useState(false);
+
+  const fetchRecommendations = useCallback(async () => {
+    if (!healthProfile.onboardingComplete) return;
+    setRecsLoading(true);
+    setRecsError(false);
+    try {
+      const recentMoods = moodLogs.slice(0, 7).map((m) => m.mood);
+      const recentSymptoms = symptomLogs
+        .slice(0, 7)
+        .map((s) => ({ symptom: s.symptom, severity: s.severity }));
+
+      const res = await fetch(`${API_BASE}/api/recommendations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phase: currentPhase,
+          cycleDay: currentCycleDay,
+          recentMoods,
+          recentSymptoms,
+          healthProfile,
+        }),
+      });
+      const data = (await res.json()) as { recommendations: Recommendation[] };
+      if (data.recommendations?.length > 0) {
+        setRecommendations(data.recommendations);
+      }
+    } catch {
+      setRecsError(true);
+    } finally {
+      setRecsLoading(false);
+    }
+  }, [healthProfile, currentPhase, currentCycleDay, moodLogs, symptomLogs]);
+
+  useEffect(() => {
+    if (healthProfile.onboardingComplete) {
+      fetchRecommendations();
+    }
+  }, [healthProfile.onboardingComplete, currentPhase]);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -106,6 +139,8 @@ export default function HomeScreen() {
     if (h < 17) return "Good afternoon";
     return "Good evening";
   };
+
+  const displayName = healthProfile.name || profile.name;
 
   return (
     <ScrollView
@@ -126,7 +161,7 @@ export default function HomeScreen() {
               {greeting()},
             </Text>
             <Text style={[styles.name, { color: colors.foreground }]}>
-              {profile.name} ✨
+              {displayName} ✨
             </Text>
           </View>
           <Pressable
@@ -140,10 +175,21 @@ export default function HomeScreen() {
             ]}
           >
             <Text style={styles.avatarText}>
-              {profile.name.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </Text>
           </Pressable>
         </View>
+
+        {/* Phase badge */}
+        {healthProfile.onboardingComplete && currentPhase !== "Unknown" && (
+          <View style={[styles.phaseBadge, { backgroundColor: colors.lavender + "22", borderColor: colors.lavender + "55" }]}>
+            <View style={[styles.phaseDot, { backgroundColor: colors.lavender }]} />
+            <Text style={[styles.phaseText, { color: colors.lavender }]}>
+              {currentPhase} Phase
+              {healthProfile.periodRegularity ? ` · ${healthProfile.periodRegularity} cycle` : ""}
+            </Text>
+          </View>
+        )}
       </LinearGradient>
 
       <View style={styles.body}>
@@ -189,26 +235,89 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Quick Insights */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Quick Insights
-          </Text>
-          {insights.map((insight, i) => (
-            <View
-              key={i}
-              style={[
-                styles.insightRow,
-                { backgroundColor: colors.lavenderLight + "66", borderColor: colors.border },
-              ]}
-            >
-              <Feather name="zap" size={14} color={colors.lavender} />
-              <Text style={[styles.insightText, { color: colors.foreground }]}>
-                {insight}
+        {/* AI Wellness Recommendations */}
+        {healthProfile.onboardingComplete && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+                Your Wellness Plan
               </Text>
+              <Pressable
+                onPress={fetchRecommendations}
+                disabled={recsLoading}
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                {recsLoading ? (
+                  <ActivityIndicator size="small" color={colors.lavender} />
+                ) : (
+                  <Feather name="refresh-cw" size={16} color={colors.lavender} />
+                )}
+              </Pressable>
             </View>
-          ))}
-        </View>
+
+            {recsLoading && recommendations.length === 0 ? (
+              <View style={[styles.recsLoadingCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <ActivityIndicator color={colors.lavender} />
+                <Text style={[styles.recsLoadingText, { color: colors.mutedForeground }]}>
+                  Generating your Indian wellness plan...
+                </Text>
+              </View>
+            ) : recsError && recommendations.length === 0 ? (
+              <View style={[styles.recsLoadingCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Feather name="wifi-off" size={20} color={colors.mutedForeground} />
+                <Text style={[styles.recsLoadingText, { color: colors.mutedForeground }]}>
+                  Could not load recommendations. Tap refresh to retry.
+                </Text>
+              </View>
+            ) : (
+              recommendations.map((rec, i) => {
+                const catColor = CATEGORY_COLORS[rec.category] ?? colors.lavender;
+                const iconName = (rec.icon as keyof typeof Feather.glyphMap) ?? "zap";
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.recCard,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: catColor + "33",
+                        borderLeftColor: catColor,
+                      },
+                    ]}
+                  >
+                    <View style={[styles.recIconWrap, { backgroundColor: catColor + "18" }]}>
+                      <Feather name={iconName} size={18} color={catColor} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.recTitleRow}>
+                        <Text style={[styles.recTitle, { color: colors.foreground }]}>
+                          {rec.title}
+                        </Text>
+                        <View style={[styles.recBadge, { backgroundColor: catColor + "22" }]}>
+                          <Text style={[styles.recBadgeText, { color: catColor }]}>
+                            {CATEGORY_LABELS[rec.category] ?? rec.category}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.recDesc, { color: colors.mutedForeground }]}>
+                        {rec.description}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })
+            )}
+
+            {!recsLoading && recommendations.length === 0 && !recsError && (
+              <View style={[styles.recsLoadingCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Feather name="cpu" size={20} color={colors.lavender} />
+                <Text style={[styles.recsLoadingText, { color: colors.mutedForeground }]}>
+                  Log your cycle to get personalized recommendations.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Quick Actions */}
         <View style={styles.section}>
@@ -258,6 +367,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 24,
+    gap: 12,
   },
   headerRow: {
     flexDirection: "row",
@@ -286,6 +396,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
+  },
+  phaseBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    gap: 6,
+  },
+  phaseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  phaseText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
   },
   body: {
     paddingHorizontal: 16,
@@ -321,24 +450,72 @@ const styles = StyleSheet.create({
   section: {
     gap: 10,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
-  insightRow: {
+  recsLoadingCard: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    padding: 14,
-    borderRadius: 12,
+    alignItems: "center",
+    gap: 12,
+    padding: 18,
+    borderRadius: 14,
     borderWidth: 1,
   },
-  insightText: {
+  recsLoadingText: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
     flex: 1,
     lineHeight: 20,
+  },
+  recCard: {
+    flexDirection: "row",
+    gap: 14,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderLeftWidth: 4,
+    alignItems: "flex-start",
+  },
+  recIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 4,
+  },
+  recTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+    flex: 1,
+  },
+  recBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  recBadgeText: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+  },
+  recDesc: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 19,
   },
   quickActions: {
     flexDirection: "row",
