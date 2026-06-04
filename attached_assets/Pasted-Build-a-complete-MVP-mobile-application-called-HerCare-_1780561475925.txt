@@ -1,0 +1,231 @@
+Build a complete MVP mobile application called **HerCare AI** using Flutter (frontend), FastAPI (backend), PostgreSQL (database), Firebase Authentication, and OpenAI/Claude API for AI chat.
+
+This is a women's health tracking application. Build only the MVP features listed below. Do not add extra features unless requested.
+
+## Core Goal
+
+Help women track their menstrual cycle, moods, symptoms, and receive personalized insights through a simple and elegant interface.
+
+---
+
+## Authentication
+
+Users can:
+
+* Sign Up
+* Login
+* Logout
+
+Store:
+
+* Name
+* Email
+* Password
+
+---
+
+## Feature 1: Period Tracker
+
+Allow users to log:
+
+* Period start date
+* Period end date
+* Flow level (Light, Medium, Heavy)
+
+System should automatically calculate:
+
+* Current cycle day
+* Average cycle length
+* Predicted next period date
+
+Dashboard should show:
+
+* Current cycle phase
+* Days until next period
+
+---
+
+## Feature 2: Mood Tracker
+
+Allow users to log one mood per day:
+
+* Happy
+* Calm
+* Motivated
+* Sad
+* Irritated
+* Anxious
+* Tired
+* Stressed
+
+Allow optional notes.
+
+Store historical mood records.
+
+---
+
+## Feature 3: Symptom Tracker
+
+Allow users to track symptoms:
+
+* Cramps
+* Bloating
+* Headache
+* Acne
+* Fatigue
+* Back Pain
+* Breast Tenderness
+
+Allow severity:
+
+* Mild
+* Moderate
+* Severe
+
+Store symptom history.
+
+---
+
+## Feature 4: Dashboard
+
+Create a dashboard displaying:
+
+### Cycle Summary
+
+* Current cycle day
+* Next predicted period
+
+### Mood Summary
+
+* Most common mood
+
+### Symptom Summary
+
+* Most frequent symptom
+
+### Quick Insights
+
+Examples:
+
+* "You often report fatigue before your period."
+* "Your average cycle length is 29 days."
+
+Use charts where appropriate.
+
+---
+
+## Feature 5: AI Health Assistant
+
+Create a chat screen connected to OpenAI or Claude API.
+
+The assistant should answer educational questions about:
+
+* Menstrual health
+* PMS
+* Period symptoms
+* Nutrition
+* Exercise
+* PCOS awareness
+
+Always include:
+
+"This information is educational and not a medical diagnosis."
+
+Store chat history.
+
+---
+
+## Database Tables
+
+Users
+
+* id
+* name
+* email
+* password
+
+CycleLogs
+
+* id
+* user_id
+* start_date
+* end_date
+* flow_level
+
+MoodLogs
+
+* id
+* user_id
+* mood
+* notes
+* date
+
+SymptomLogs
+
+* id
+* user_id
+* symptom
+* severity
+* date
+
+ChatHistory
+
+* id
+* user_id
+* message
+* response
+* timestamp
+
+---
+
+## Screens
+
+1. Splash Screen
+2. Login Screen
+3. Signup Screen
+4. Home Dashboard
+5. Cycle Tracker
+6. Mood Tracker
+7. Symptom Tracker
+8. AI Chat Screen
+9. Profile Screen
+
+---
+
+## Design Requirements
+
+Theme:
+
+* Modern
+* Minimal
+* Premium
+* Clean
+
+Colors:
+
+* Lavender
+* Soft Pink
+* White
+
+Design inspiration:
+
+* Apple Health
+* Flo
+
+---
+
+## Deliverables
+
+Generate:
+
+1. Complete project folder structure
+2. Database schema
+3. Backend APIs
+4. Flutter UI screens
+5. FastAPI backend
+6. PostgreSQL models
+7. AI integration
+8. Setup instructions
+9. Deployment instructions
+
+Build the project step-by-step and explain every file, folder, API endpoint, and architectural decision so I can learn while building.
