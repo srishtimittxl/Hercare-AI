@@ -18,17 +18,10 @@ import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import type { ChatMessage } from "@/context/AppContext";
 
-const SYSTEM_PROMPT = `You are HerCare AI, a compassionate and knowledgeable women's health assistant. You provide educational information about:
-- Menstrual health and cycle tracking
-- PMS and period symptoms
-- Nutrition and exercise during different cycle phases
-- PCOS awareness and related conditions
-- General women's wellness
+const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
+  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  : "";
 
-Always be warm, supportive, and non-judgmental. Always conclude responses that discuss medical topics with:
-"This information is educational and not a medical diagnosis. Please consult a healthcare provider for personal medical advice."
-
-Keep responses concise and easy to read. Use simple formatting.`;
 
 function MessageBubble({ message }: { message: ChatMessage }) {
   const colors = useColors();
@@ -114,19 +107,12 @@ export default function ChatScreen() {
     ];
 
     try {
-      const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          stream: true,
-          max_tokens: 512,
-        }),
+        body: JSON.stringify({ messages }),
       });
 
       if (!response.body) throw new Error("No response body");
