@@ -19,11 +19,9 @@ router.post("/recommendations", async (req, res) => {
     };
   };
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ error: "OpenAI API key not configured" });
-    return;
-  }
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
 
   const conditionText =
     healthProfile.conditions?.length > 0 && !healthProfile.conditions.includes("None")
@@ -74,46 +72,127 @@ Respond ONLY with a valid JSON array of exactly 4 objects. No markdown. No extra
   "icon": one of "coffee" | "sun" | "moon" | "activity" | "heart" | "zap" | "droplet" | "leaf"
 }`;
 
-  try {
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.7,
-      }),
-    });
+  if (groqKey || openaiKey) {
+    const apiKey = groqKey || openaiKey || "";
+    const isGroq = apiKey.startsWith("gsk_");
+    const baseUrl = isGroq ? "https://api.groq.com/openai/v1" : "https://api.openai.com/v1";
+    const model = isGroq ? "llama-3.3-70b-versatile" : "gpt-4o-mini";
 
-    if (!openaiRes.ok) {
-      const err = await openaiRes.text();
-      req.log.error({ status: openaiRes.status, err }, "OpenAI recommendations error");
-      res.status(502).json({ error: "OpenAI request failed" });
+    try {
+      const apiRes = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+        }),
+      });
+
+      if (!apiRes.ok) {
+        const err = await apiRes.text();
+        req.log.error({ status: apiRes.status, err }, "OpenAI/Groq recommendations API error");
+        res.status(502).json({ error: "AI request failed" });
+        return;
+      }
+
+      const data = (await apiRes.json()) as any;
+      const content = data.choices?.[0]?.message?.content ?? "[]";
+
+      let recommendations: unknown[];
+      try {
+        recommendations = JSON.parse(content);
+      } catch {
+        const match = content.match(/\[[\s\S]*\]/);
+        recommendations = match ? JSON.parse(match[0]) : [];
+      }
+
+      // Handle wrapper object if LLM returned { "recommendations": [...] } instead of raw array
+      if (recommendations && !Array.isArray(recommendations) && typeof recommendations === "object") {
+        const keys = Object.keys(recommendations);
+        if (keys.length === 1 && Array.isArray((recommendations as any)[keys[0]])) {
+          recommendations = (recommendations as any)[keys[0]];
+        }
+      }
+
+      res.json({ recommendations });
+      return;
+    } catch (err) {
+      req.log.error({ err }, "OpenAI/Groq recommendations error");
+      res.status(500).json({ error: "Internal server error" });
       return;
     }
+  }
 
-    const data = (await openaiRes.json()) as {
-      choices: { message: { content: string } }[];
+  if (geminiKey) {
+    const isOauthToken = geminiKey.startsWith("ya29.");
+    const url = isOauthToken
+      ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
+      : `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
     };
-    const content = data.choices[0]?.message?.content ?? "[]";
 
-    let recommendations: unknown[];
-    try {
-      recommendations = JSON.parse(content);
-    } catch {
-      const match = content.match(/\[[\s\S]*\]/);
-      recommendations = match ? JSON.parse(match[0]) : [];
+    if (isOauthToken) {
+      headers["Authorization"] = `Bearer ${geminiKey}`;
+    } else {
+      headers["x-goog-api-key"] = geminiKey;
     }
 
-    res.json({ recommendations });
-  } catch (err) {
-    req.log.error({ err }, "Recommendations error");
-    res.status(500).json({ error: "Internal server error" });
+    try {
+      const geminiRes = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+          },
+        }),
+      });
+
+      if (!geminiRes.ok) {
+        const err = await geminiRes.text();
+        req.log.error({ status: geminiRes.status, err }, "Gemini recommendations error");
+        res.status(502).json({ error: "Gemini request failed" });
+        return;
+      }
+
+      const data = (await geminiRes.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
+      };
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]";
+
+      let recommendations: unknown[];
+      try {
+        recommendations = JSON.parse(content);
+      } catch {
+        const match = content.match(/\[[\s\S]*\]/);
+        recommendations = match ? JSON.parse(match[0]) : [];
+      }
+
+      // Handle wrapper object if LLM returned { "recommendations": [...] }
+      if (recommendations && !Array.isArray(recommendations) && typeof recommendations === "object") {
+        const keys = Object.keys(recommendations);
+        if (keys.length === 1 && Array.isArray((recommendations as any)[keys[0]])) {
+          recommendations = (recommendations as any)[keys[0]];
+        }
+      }
+
+      res.json({ recommendations });
+      return;
+    } catch (err) {
+      req.log.error({ err }, "Gemini recommendations error");
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
   }
+
+  res.status(500).json({ error: "No API key configured on server" });
 });
 
 export default router;

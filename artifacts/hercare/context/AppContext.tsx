@@ -8,23 +8,8 @@ import React, {
 } from "react";
 
 export type FlowLevel = "Light" | "Medium" | "Heavy";
-export type MoodType =
-  | "Happy"
-  | "Calm"
-  | "Motivated"
-  | "Sad"
-  | "Irritated"
-  | "Anxious"
-  | "Tired"
-  | "Stressed";
-export type SymptomType =
-  | "Cramps"
-  | "Bloating"
-  | "Headache"
-  | "Acne"
-  | "Fatigue"
-  | "Back Pain"
-  | "Breast Tenderness";
+export type MoodType = string;
+export type SymptomType = string;
 export type Severity = "Mild" | "Moderate" | "Severe";
 export type PeriodRegularity = "Regular" | "Irregular" | "Very Irregular";
 export type AgeGroup = "13-17" | "18-24" | "25-34" | "35-44" | "45+";
@@ -61,6 +46,7 @@ export interface ChatMessage {
 
 export interface HealthProfile {
   name: string;
+  email: string;
   periodRegularity: PeriodRegularity | "";
   typicalFlow: FlowLevel | "";
   averageCycleLength: number;
@@ -112,6 +98,7 @@ const defaultProfile: UserProfile = {
 
 const defaultHealthProfile: HealthProfile = {
   name: "",
+  email: "",
   periodRegularity: "",
   typicalFlow: "",
   averageCycleLength: 28,

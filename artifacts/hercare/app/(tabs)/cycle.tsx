@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,14 +36,61 @@ function formatDate(d: string) {
   });
 }
 
+function isValidDate(dStr: string) {
+  const reg = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dStr.match(reg)) return false;
+  const d = new Date(dStr);
+  const dNum = d.getTime();
+  if (Number.isNaN(dNum)) return false;
+  return d.toISOString().slice(0, 10) === dStr;
+}
+
 export default function CycleScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { cycleLogs, addCycleLog, updateCycleLog, currentCycleDay, currentPhase, predictedNextPeriod, averageCycleLength } = useApp();
   const [selectedFlow, setSelectedFlow] = useState<FlowLevel>("Medium");
   const [loading, setLoading] = useState(false);
+  const [showCustomLog, setShowCustomLog] = useState(false);
+  const [customStart, setCustomStart] = useState(todayStr());
+  const [customEnd, setCustomEnd] = useState("");
+  const [customFlow, setCustomFlow] = useState<FlowLevel>("Medium");
+  const [isOngoing, setIsOngoing] = useState(false);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  const handleSaveCustomLog = () => {
+    const start = customStart.trim();
+    const end = isOngoing ? null : customEnd.trim();
+
+    if (!isValidDate(start)) {
+      Alert.alert("Invalid Start Date", "Please enter a valid date in YYYY-MM-DD format.");
+      return;
+    }
+
+    if (end && !isValidDate(end)) {
+      Alert.alert("Invalid End Date", "Please enter a valid date in YYYY-MM-DD format or leave blank.");
+      return;
+    }
+
+    if (end && new Date(end).getTime() < new Date(start).getTime()) {
+      Alert.alert("Invalid Dates", "End date must be after or equal to the start date.");
+      return;
+    }
+
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    addCycleLog({
+      startDate: start,
+      endDate: end,
+      flowLevel: customFlow,
+    });
+
+    // Reset fields
+    setCustomStart(todayStr());
+    setCustomEnd("");
+    setIsOngoing(false);
+    setShowCustomLog(false);
+  };
 
   const activeCycle = cycleLogs.find((c) => !c.endDate);
 
@@ -216,6 +264,167 @@ export default function CycleScreen() {
               />
             </View>
           </>
+        )}
+
+        {/* Log Past Period Toggle */}
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setShowCustomLog(!showCustomLog);
+          }}
+          style={({ pressed }) => [
+            styles.toggleBtn,
+            { borderColor: colors.border, opacity: pressed ? 0.7 : 1 },
+          ]}
+        >
+          <Feather name={showCustomLog ? "minus-circle" : "plus-circle"} size={16} color={colors.lavender} />
+          <Text style={[styles.toggleBtnText, { color: colors.lavender }]}>
+            {showCustomLog ? "Cancel Custom Log" : "Log Custom Period"}
+          </Text>
+        </Pressable>
+
+        {showCustomLog && (
+          <View
+            style={[
+              styles.card,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.foreground }]}>
+              Log Custom Period 🌸
+            </Text>
+
+            <View style={styles.field}>
+              <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+                Start Date (YYYY-MM-DD)
+              </Text>
+              <TextInput
+                value={customStart}
+                onChangeText={setCustomStart}
+                placeholder="e.g. 2026-06-01"
+                placeholderTextColor={colors.mutedForeground}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.muted,
+                    color: colors.foreground,
+                    borderColor: colors.border,
+                  },
+                ]}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+                  End Date (YYYY-MM-DD)
+                </Text>
+                <Pressable
+                  onPress={() => setIsOngoing(!isOngoing)}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                >
+                  <Feather
+                    name={isOngoing ? "check-square" : "square"}
+                    size={15}
+                    color={colors.lavender}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.mutedForeground,
+                      fontFamily: "Inter_400Regular",
+                    }}
+                  >
+                    Still Ongoing
+                  </Text>
+                </Pressable>
+              </View>
+              {!isOngoing && (
+                <TextInput
+                  value={customEnd}
+                  onChangeText={setCustomEnd}
+                  placeholder="e.g. 2026-06-05"
+                  placeholderTextColor={colors.mutedForeground}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.muted,
+                      color: colors.foreground,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                />
+              )}
+            </View>
+
+            <View style={styles.field}>
+              <Text style={[styles.fieldLabel, { color: colors.mutedForeground, marginBottom: 4 }]}>
+                Flow Level
+              </Text>
+              <View style={styles.flowRow}>
+                {FLOW_LEVELS.map((f) => (
+                  <Pressable
+                    key={f}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setCustomFlow(f);
+                    }}
+                    style={({ pressed }) => [
+                      styles.flowChip,
+                      {
+                        backgroundColor:
+                          customFlow === f
+                            ? FLOW_COLORS[f] + "22"
+                            : colors.muted,
+                        borderColor:
+                          customFlow === f ? FLOW_COLORS[f] : colors.border,
+                        opacity: pressed ? 0.8 : 1,
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.flowDot,
+                        {
+                          backgroundColor:
+                            customFlow === f
+                              ? FLOW_COLORS[f]
+                              : colors.mutedForeground,
+                          width: f === "Light" ? 8 : f === "Medium" ? 11 : 14,
+                          height: f === "Light" ? 8 : f === "Medium" ? 11 : 14,
+                        },
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.flowLabel,
+                        {
+                          color:
+                            customFlow === f
+                              ? FLOW_COLORS[f]
+                              : colors.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {f}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <PrimaryButton
+              label="Save Custom Log"
+              onPress={handleSaveCustomLog}
+              style={{ marginTop: 8 }}
+            />
+          </View>
         )}
 
         {/* Next period */}
@@ -427,5 +636,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
+  },
+  toggleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  toggleBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+  },
+  field: {
+    gap: 6,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  input: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
   },
 });

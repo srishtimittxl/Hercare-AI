@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -42,16 +43,20 @@ export default function MoodScreen() {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState(false);
+  const [customMood, setCustomMood] = useState("");
+  const [isCustomActive, setIsCustomActive] = useState(false);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const todayLog = moodLogs.find((l) => l.date === todayStr());
 
   const handleSave = () => {
-    if (!selectedMood) return;
+    if (!selectedMood || selectedMood === "Custom") return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addMoodLog({ mood: selectedMood, notes, date: todayStr() });
     setSelectedMood(null);
+    setCustomMood("");
+    setIsCustomActive(false);
     setNotes("");
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -87,11 +92,11 @@ export default function MoodScreen() {
             </Text>
             <View style={styles.todayMoodRow}>
               <Feather
-                name={MOOD_META[todayLog.mood].icon}
+                name={MOOD_META[todayLog.mood]?.icon || "smile"}
                 size={22}
-                color={MOOD_META[todayLog.mood].color}
+                color={MOOD_META[todayLog.mood]?.color || colors.lavender}
               />
-              <Text style={[styles.todayMood, { color: MOOD_META[todayLog.mood].color }]}>
+              <Text style={[styles.todayMood, { color: MOOD_META[todayLog.mood]?.color || colors.lavender }]}>
                 {todayLog.mood}
               </Text>
             </View>
@@ -119,10 +124,64 @@ export default function MoodScreen() {
                 key={m}
                 mood={m}
                 selected={selectedMood === m}
-                onPress={() => setSelectedMood(selectedMood === m ? null : m)}
+                onPress={() => {
+                  setSelectedMood(selectedMood === m ? null : m);
+                  setCustomMood("");
+                  setIsCustomActive(false);
+                }}
               />
             ))}
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                const nextCustom = !isCustomActive;
+                setIsCustomActive(nextCustom);
+                setSelectedMood(nextCustom ? (customMood.trim() || "Custom") : null);
+              }}
+              style={({ pressed }) => [
+                styles.customChip,
+                {
+                  backgroundColor: isCustomActive ? colors.lavender + "22" : colors.card,
+                  borderColor: isCustomActive ? colors.lavender : colors.border,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Feather
+                name="plus"
+                size={16}
+                color={isCustomActive ? colors.lavender : colors.mutedForeground}
+              />
+              <Text
+                style={[
+                  styles.customChipLabel,
+                  { color: isCustomActive ? colors.lavender : colors.mutedForeground },
+                ]}
+              >
+                Custom
+              </Text>
+            </Pressable>
           </View>
+
+          {isCustomActive && (
+            <TextInput
+              value={customMood}
+              onChangeText={(text) => {
+                setCustomMood(text);
+                setSelectedMood(text.trim() || "Custom");
+              }}
+              placeholder="How else are you feeling?..."
+              placeholderTextColor={colors.mutedForeground}
+              style={[
+                styles.customInput,
+                {
+                  backgroundColor: colors.muted,
+                  color: colors.foreground,
+                  borderColor: colors.border,
+                },
+              ]}
+            />
+          )}
 
           <TextInput
             value={notes}
@@ -154,7 +213,7 @@ export default function MoodScreen() {
               History
             </Text>
             {moodLogs.slice(0, 10).map((log) => {
-              const meta = MOOD_META[log.mood];
+              const meta = MOOD_META[log.mood] || { icon: "smile" as const, color: colors.lavender };
               return (
                 <View
                   key={log.id}
@@ -303,5 +362,26 @@ const styles = StyleSheet.create({
   historyDate: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
+  },
+  customChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1.5,
+  },
+  customChipLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
+  customInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
   },
 });

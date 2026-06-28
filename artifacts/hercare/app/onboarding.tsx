@@ -129,9 +129,11 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [regularity, setRegularity] = useState<PeriodRegularity | "">("");
   const [flow, setFlow] = useState<FlowLevel | "">("");
   const [cycleLength, setCycleLength] = useState<number>(28);
+  const [selectedCycleLengthLabel, setSelectedCycleLengthLabel] = useState<string>("28–30 days");
   const [ageGroup, setAgeGroup] = useState<AgeGroup | "">("");
   const [conditions, setConditions] = useState<KnownCondition[]>([]);
   const [dietType, setDietType] = useState<DietType | "">("");
@@ -150,7 +152,13 @@ export default function OnboardingScreen() {
   };
 
   const canNext = () => {
-    if (step === 0) return name.trim().length > 0;
+    if (step === 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return (
+        name.trim().length > 0 &&
+        emailRegex.test(email.trim())
+      );
+    }
     if (step === 1) return regularity !== "" && flow !== "";
     if (step === 2) return ageGroup !== "";
     if (step === 3) return conditions.length > 0;
@@ -172,6 +180,7 @@ export default function OnboardingScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setHealthProfile({
       name: name.trim(),
+      email: email.trim().toLowerCase(),
       periodRegularity: regularity,
       typicalFlow: flow,
       averageCycleLength: cycleLength,
@@ -225,7 +234,7 @@ export default function OnboardingScreen() {
           </Text>
         </View>
 
-        {/* Step 0: Name */}
+        {/* Step 0: Name & Email */}
         {step === 0 && (
           <View style={styles.stepContent}>
             <View
@@ -234,7 +243,7 @@ export default function OnboardingScreen() {
                 { backgroundColor: colors.card, borderColor: colors.border },
               ]}
             >
-              <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+              <Text style={[styles.fieldLabel, { color: colors.mutedForeground, marginBottom: 4 }]}>
                 What's your name?
               </Text>
               <TextInput
@@ -242,7 +251,28 @@ export default function OnboardingScreen() {
                 onChangeText={setName}
                 placeholder="Enter your name"
                 placeholderTextColor={colors.mutedForeground}
-                autoFocus
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: colors.muted,
+                    color: colors.foreground,
+                    borderColor: colors.border,
+                    marginBottom: 14,
+                  },
+                ]}
+              />
+
+              <Text style={[styles.fieldLabel, { color: colors.mutedForeground, marginBottom: 4 }]}>
+                Email Address
+              </Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@example.com"
+                placeholderTextColor={colors.mutedForeground}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
                 style={[
                   styles.textInput,
                   {
@@ -253,11 +283,12 @@ export default function OnboardingScreen() {
                 ]}
               />
             </View>
+
             <View style={[styles.featureList, { backgroundColor: colors.card, borderColor: colors.border }]}>
               {[
+                { icon: "shield" as const, text: "All data stays private on your device" },
                 { icon: "bar-chart-2" as const, text: "Track your cycle, mood & symptoms" },
                 { icon: "cpu" as const, text: "AI-powered Indian diet recommendations" },
-                { icon: "shield" as const, text: "All data stays private on your device" },
               ].map((f) => (
                 <View key={f.text} style={styles.featureRow}>
                   <View style={[styles.featureIcon, { backgroundColor: colors.lavenderLight }]}>
@@ -318,10 +349,14 @@ export default function OnboardingScreen() {
               <View style={styles.chipRow}>
                 {CYCLE_LENGTH_OPTIONS.map((o) => (
                   <SelectChip
-                    key={o.value}
+                    key={o.label}
                     option={o}
-                    selected={cycleLength === o.value}
-                    onPress={() => { Haptics.selectionAsync(); setCycleLength(o.value); }}
+                    selected={selectedCycleLengthLabel === o.label}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setSelectedCycleLengthLabel(o.label);
+                      setCycleLength(o.value);
+                    }}
                   />
                 ))}
               </View>

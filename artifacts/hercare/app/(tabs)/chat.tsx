@@ -12,15 +12,18 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardAvoidingView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 import type { ChatMessage } from "@/context/AppContext";
 
 const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  ? process.env.EXPO_PUBLIC_DOMAIN.startsWith("http")
+    ? process.env.EXPO_PUBLIC_DOMAIN
+    : `https://${process.env.EXPO_PUBLIC_DOMAIN}`
   : "";
+
 
 
 function MessageBubble({ message }: { message: ChatMessage }) {
@@ -115,6 +118,34 @@ export default function ChatScreen() {
         body: JSON.stringify({ messages }),
       });
 
+      if (!response.ok) {
+        let errMsg = "AI Chat failed to respond. Please make sure the server is configured properly.";
+        try {
+          const errJson = await response.json() as { error?: string; detail?: string };
+          if (errJson.detail) {
+            try {
+              const detailObj = JSON.parse(errJson.detail) as { error?: { message?: string } };
+              if (detailObj.error?.message) {
+                errMsg = detailObj.error.message;
+              } else {
+                errMsg = errJson.detail;
+              }
+            } catch {
+              errMsg = errJson.detail;
+            }
+          } else if (errJson.error) {
+            errMsg = errJson.error;
+          }
+        } catch {}
+        addChatMessage({
+          role: "assistant",
+          content: `⚠️ API Error: ${errMsg}`,
+          timestamp: new Date().toISOString(),
+        });
+        setLoading(false);
+        return;
+      }
+
       if (!response.body) throw new Error("No response body");
 
       const reader = response.body.getReader();
@@ -176,10 +207,8 @@ export default function ChatScreen() {
   const reversed = [...allMessages].reverse();
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior="padding"
-      keyboardVerticalOffset={0}
+    <View
+      style={{ flex: 1, backgroundColor: colors.background, }}
     >
       {/* Header */}
       <View
@@ -217,6 +246,7 @@ export default function ChatScreen() {
 
       {/* Messages */}
       <FlatList
+        style={{ flex: 0.8 }}
         ref={flatListRef}
         data={reversed}
         keyExtractor={(item) => item.id}
@@ -224,7 +254,7 @@ export default function ChatScreen() {
         inverted
         contentContainerStyle={[
           styles.messageList,
-          { paddingBottom: 12 },
+          { paddingBottom: 100 },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="interactive"
@@ -319,7 +349,7 @@ export default function ChatScreen() {
           )}
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

@@ -24,53 +24,157 @@ router.post("/chat", async (req, res) => {
     return;
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ error: "OpenAI API key not configured" });
-    return;
-  }
+  // 1. Detect which provider keys are set
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
 
-  try {
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-        stream: true,
-        max_tokens: 512,
-      }),
-    });
+  if (groqKey || openaiKey) {
+    // OpenAI/Groq Flow
+    const apiKey = groqKey || openaiKey || "";
+    const isGroq = apiKey.startsWith("gsk_");
+    const baseUrl = isGroq ? "https://api.groq.com/openai/v1" : "https://api.openai.com/v1";
+    const model = isGroq ? "llama-3.3-70b-versatile" : "gpt-4o-mini";
 
-    if (!openaiRes.ok) {
-      const err = await openaiRes.text();
-      req.log.error({ status: openaiRes.status, err }, "OpenAI API error");
-      res.status(502).json({ error: "OpenAI request failed", detail: err });
+    try {
+      const apiRes = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            ...messages,
+          ],
+          stream: true,
+        }),
+      });
+
+      if (!apiRes.ok) {
+        const err = await apiRes.text();
+        req.log.error({ status: apiRes.status, err }, "OpenAI/Groq API error");
+        res.status(502).json({ error: "AI request failed", detail: err });
+        return;
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const reader = apiRes.body!.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(decoder.decode(value));
+      }
+
+      res.end();
+      return;
+    } catch (err) {
+      req.log.error({ err }, "OpenAI/Groq proxy error");
+      res.status(500).json({ error: "Internal server error" });
       return;
     }
+  }
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
+  if (geminiKey) {
+    // Gemini Flow (reverted to v1beta for systemInstructions support)
+    const isOauthToken = geminiKey.startsWith("ya29.");
+    const url = isOauthToken
+      ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse`
+      : `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${geminiKey}`;
 
-    const reader = openaiRes.body!.getReader();
-    const decoder = new TextDecoder();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      res.write(chunk);
+    if (isOauthToken) {
+      headers["Authorization"] = `Bearer ${geminiKey}`;
+    } else {
+      headers["x-goog-api-key"] = geminiKey;
     }
 
-    res.end();
-  } catch (err) {
-    req.log.error({ err }, "Chat proxy error");
-    res.status(500).json({ error: "Internal server error" });
+    try {
+      const geminiRes = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          contents: messages.map((m) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+          })),
+          systemInstruction: {
+            parts: [{ text: SYSTEM_PROMPT }],
+          },
+        }),
+      });
+
+      if (!geminiRes.ok) {
+        const err = await geminiRes.text();
+        req.log.error({ status: geminiRes.status, err }, "Gemini API error");
+        res.status(502).json({ error: "Gemini request failed", detail: err });
+        return;
+      }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const reader = geminiRes.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let boundary = buffer.indexOf("\n");
+        while (boundary !== -1) {
+          const line = buffer.slice(0, boundary).trim();
+          buffer = buffer.slice(boundary + 1);
+          boundary = buffer.indexOf("\n");
+
+          if (line.startsWith("data: ")) {
+            const jsonText = line.slice(6).trim();
+            try {
+              const parsed = JSON.parse(jsonText);
+              const textChunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textChunk) {
+                const openAiFormat = {
+                  choices: [
+                    {
+                      delta: {
+                        content: textChunk,
+                      },
+                    },
+                  ],
+                };
+                res.write(`data: ${JSON.stringify(openAiFormat)}\n\n`);
+              }
+            } catch (e) {
+              // Ignore parse errors from partial lines
+            }
+          }
+        }
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+      return;
+    } catch (err) {
+      req.log.error({ err }, "Gemini proxy error");
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
   }
+
+  res.status(500).json({ error: "No API key configured on server" });
 });
 
 export default router;

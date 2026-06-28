@@ -1,17 +1,20 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { setupAllNotifications, disableAllNotifications } from "@/utils/notifications";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
@@ -19,9 +22,48 @@ import { useColors } from "@/hooks/useColors";
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { profile, setProfile, healthProfile, cycleLogs, moodLogs, symptomLogs, chatHistory } = useApp();
+  const {
+    profile,
+    setProfile,
+    healthProfile,
+    cycleLogs,
+    moodLogs,
+    symptomLogs,
+    chatHistory,
+    predictedNextPeriod,
+  } = useApp();
   const [name, setName] = useState(healthProfile.name || profile.name);
   const [saved, setSaved] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem("hercare_notifications");
+        if (stored === "true") setNotificationsEnabled(true);
+      } catch {}
+    })();
+  }, []);
+
+  const handleToggleNotifications = async (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setNotificationsEnabled(value);
+    try {
+      await AsyncStorage.setItem("hercare_notifications", value ? "true" : "false");
+      if (value) {
+        const success = await setupAllNotifications(
+          healthProfile.name || profile.name,
+          predictedNextPeriod
+        );
+        if (!success) {
+          setNotificationsEnabled(false);
+          await AsyncStorage.setItem("hercare_notifications", "false");
+        }
+      } else {
+        await disableAllNotifications();
+      }
+    } catch {}
+  };
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -86,7 +128,7 @@ export default function ProfileScreen() {
           </Text>
           {healthProfile.onboardingComplete && (
             <View style={[styles.dietBadge, { backgroundColor: colors.lavenderLight, borderColor: colors.lavender + "44" }]}>
-              <Feather name="leaf" size={12} color={colors.lavender} />
+              <Ionicons name="leaf" size={12} color={colors.lavender} />
               <Text style={[styles.dietBadgeText, { color: colors.lavender }]}>
                 {healthProfile.dietType || "Vegetarian"} · {healthProfile.periodRegularity || "Regular"} cycle
               </Text>
@@ -216,6 +258,36 @@ export default function ProfileScreen() {
             onPress={handleSave}
             disabled={!name.trim() || name === (healthProfile.name || profile.name)}
           />
+        </View>
+
+        {/* Notifications Setting */}
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+              <View style={[styles.notificationIconWrap, { backgroundColor: colors.lavenderLight }]}>
+                <Feather name="bell" size={18} color={colors.lavender} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.cardTitle, { color: colors.foreground }]}>
+                  Personalized Reminders
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 2, fontFamily: "Inter_400Regular" }}>
+                  Get cute alerts for cycle phases and hydration.
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={handleToggleNotifications}
+              trackColor={{ false: colors.muted, true: colors.lavender }}
+              thumbColor={notificationsEnabled ? "#FFF" : colors.mutedForeground}
+            />
+          </View>
         </View>
 
         {/* Info section */}
@@ -427,5 +499,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     paddingBottom: 8,
+  },
+  notificationIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

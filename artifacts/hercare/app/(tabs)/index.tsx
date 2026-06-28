@@ -21,8 +21,11 @@ import { MOOD_META } from "@/components/MoodChip";
 import type { MoodType, SymptomType } from "@/context/AppContext";
 
 const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  ? process.env.EXPO_PUBLIC_DOMAIN.startsWith("http")
+    ? process.env.EXPO_PUBLIC_DOMAIN
+    : `https://${process.env.EXPO_PUBLIC_DOMAIN}`
   : "";
+
 
 const CATEGORY_COLORS: Record<string, string> = {
   diet: "#5BAD7F",
@@ -53,20 +56,20 @@ function formatDate(dateStr: string | null): string {
 
 function getMostCommonMood(moodLogs: { mood: MoodType }[]): MoodType | null {
   if (moodLogs.length === 0) return null;
-  const counts: Partial<Record<MoodType, number>> = {};
+  const counts: Record<string, number> = {};
   moodLogs.forEach((l) => {
     counts[l.mood] = (counts[l.mood] ?? 0) + 1;
   });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as MoodType;
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
 }
 
 function getMostCommonSymptom(symptomLogs: { symptom: SymptomType }[]): SymptomType | null {
   if (symptomLogs.length === 0) return null;
-  const counts: Partial<Record<SymptomType, number>> = {};
+  const counts: Record<string, number> = {};
   symptomLogs.forEach((l) => {
     counts[l.symptom] = (counts[l.symptom] ?? 0) + 1;
   });
-  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as SymptomType;
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
 }
 
 export default function HomeScreen() {

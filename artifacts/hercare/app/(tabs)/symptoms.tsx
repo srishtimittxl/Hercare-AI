@@ -3,9 +3,11 @@ import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import {
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -42,13 +44,15 @@ export default function SymptomsScreen() {
   const [selectedSymptom, setSelectedSymptom] = useState<SymptomType | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<Severity>("Mild");
   const [saved, setSaved] = useState(false);
+  const [customSymptom, setCustomSymptom] = useState("");
+  const [isCustomActive, setIsCustomActive] = useState(false);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
   const todayLogs = symptomLogs.filter((l) => l.date === todayStr());
 
   const handleSave = () => {
-    if (!selectedSymptom) return;
+    if (!selectedSymptom || selectedSymptom === "Custom") return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addSymptomLog({
       symptom: selectedSymptom,
@@ -56,6 +60,8 @@ export default function SymptomsScreen() {
       date: todayStr(),
     });
     setSelectedSymptom(null);
+    setCustomSymptom("");
+    setIsCustomActive(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -97,7 +103,7 @@ export default function SymptomsScreen() {
                   ]}
                 >
                   <Feather
-                    name={SYMPTOM_ICONS[l.symptom]}
+                    name={SYMPTOM_ICONS[l.symptom] || "activity"}
                     size={13}
                     color={SEVERITY_COLORS[l.severity]}
                   />
@@ -126,12 +132,64 @@ export default function SymptomsScreen() {
                 key={s}
                 symptom={s}
                 selected={selectedSymptom === s}
-                onPress={() =>
-                  setSelectedSymptom(selectedSymptom === s ? null : s)
-                }
+                onPress={() => {
+                  setSelectedSymptom(selectedSymptom === s ? null : s);
+                  setCustomSymptom("");
+                  setIsCustomActive(false);
+                }}
               />
             ))}
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                const nextCustom = !isCustomActive;
+                setIsCustomActive(nextCustom);
+                setSelectedSymptom(nextCustom ? (customSymptom.trim() || "Custom") : null);
+              }}
+              style={({ pressed }) => [
+                styles.customChip,
+                {
+                  backgroundColor: isCustomActive ? colors.pink + "18" : colors.card,
+                  borderColor: isCustomActive ? colors.pink : colors.border,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Feather
+                name="plus"
+                size={16}
+                color={isCustomActive ? colors.pink : colors.mutedForeground}
+              />
+              <Text
+                style={[
+                  styles.customChipLabel,
+                  { color: isCustomActive ? colors.pink : colors.mutedForeground },
+                ]}
+              >
+                Custom
+              </Text>
+            </Pressable>
           </View>
+
+          {isCustomActive && (
+            <TextInput
+              value={customSymptom}
+              onChangeText={(text) => {
+                setCustomSymptom(text);
+                setSelectedSymptom(text.trim() || "Custom");
+              }}
+              placeholder="What other symptom?..."
+              placeholderTextColor={colors.mutedForeground}
+              style={[
+                styles.customInput,
+                {
+                  backgroundColor: colors.muted,
+                  color: colors.foreground,
+                  borderColor: colors.border,
+                },
+              ]}
+            />
+          )}
 
           {selectedSymptom && (
             <>
@@ -181,7 +239,7 @@ export default function SymptomsScreen() {
                     ]}
                   >
                     <Feather
-                      name={SYMPTOM_ICONS[log.symptom]}
+                      name={SYMPTOM_ICONS[log.symptom] || "activity"}
                       size={16}
                       color={sColor}
                     />
@@ -335,5 +393,26 @@ const styles = StyleSheet.create({
   historyDate: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
+  },
+  customChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 24,
+    borderWidth: 1.5,
+  },
+  customChipLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+  },
+  customInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    marginTop: 4,
   },
 });

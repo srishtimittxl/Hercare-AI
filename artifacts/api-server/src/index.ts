@@ -15,6 +15,10 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
+if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY && !process.env.GROQ_API_KEY) {
+  console.warn("\n⚠️  WARNING: No API key (GEMINI_API_KEY, OPENAI_API_KEY, or GROQ_API_KEY) is set. AI features will fail.\n");
+}
+
 app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
