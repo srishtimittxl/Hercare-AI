@@ -1,7 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { fetch } from "expo/fetch";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,14 +16,9 @@ import { InsightCard } from "@/components/InsightCard";
 import { PhaseRing } from "@/components/PhaseRing";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { discoverWorkingApiBase, resolveApiBase } from "@/utils/api";
 import { MOOD_META } from "@/components/MoodChip";
 import type { MoodType, SymptomType } from "@/context/AppContext";
-
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? process.env.EXPO_PUBLIC_DOMAIN.startsWith("http")
-    ? process.env.EXPO_PUBLIC_DOMAIN
-    : `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-  : "";
 
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -108,7 +102,10 @@ export default function HomeScreen() {
         .slice(0, 7)
         .map((s) => ({ symptom: s.symptom, severity: s.severity }));
 
-      const res = await fetch(`${API_BASE}/api/recommendations`, {
+      const { baseUrl } = await discoverWorkingApiBase();
+      const targetBase = baseUrl || resolveApiBase();
+
+      const res = await globalThis.fetch(`${targetBase}/api/recommendations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,6 +116,9 @@ export default function HomeScreen() {
           healthProfile,
         }),
       });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = (await res.json()) as { recommendations: Recommendation[] };
       if (data.recommendations?.length > 0) {
         setRecommendations(data.recommendations);

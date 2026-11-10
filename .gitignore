@@ -1,6 +1,6 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# compiled output
+# Compiled output
 dist
 tmp
 out-tsc
@@ -8,8 +8,45 @@ out-tsc
 .expo
 .expo-shared
 
-# dependencies
-node_modules
+# Dependencies & Virtual Environments
+node_modules/
+**/node_modules/
+.venv/
+venv/
+**/.venv/
+**/venv/
+artifacts/hercare/backend/.venv/
+
+# Environment variables & secrets (keep .env.example trackable)
+.env
+.env*
+**/.env
+**/.env*
+!.env.example
+!**/.env.example
+
+# Python bytecode & cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Downloaded NLTK corpora (auto-downloaded on startup)
+nltk_data/
+**/nltk_data/
+artifacts/hercare/backend/nltk_data/
+
+# SQLite databases & WAL/SHM runtime files
+*.db
+*.db-shm
+*.db-wal
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+# Archive files
+*.zip
+**/*.zip
 
 # IDEs and editors
 /.idea
@@ -27,7 +64,7 @@ node_modules
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# misc
+# Misc logs & coverage
 /.sass-cache
 /connect.lock
 /coverage
@@ -39,6 +76,7 @@ testem.log
 
 # System Files
 .DS_Store
+**/.DS_Store
 Thumbs.db
 
 .cursor/rules/nx-rules.mdc
@@ -47,3 +85,5 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+interview_prep_guide.md

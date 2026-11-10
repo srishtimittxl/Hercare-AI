@@ -1,0 +1,395 @@
+[
+  {
+    "id": "kb_001",
+    "topic": "Menstrual Cycle Overview & Four Phases",
+    "category": "menstrual_cycle_phases",
+    "intent": "greeting_general_wellness",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["menstrual cycle", "four phases", "menstrual", "follicular", "ovulation", "luteal", "estrogen", "progesterone", "hormones", "dosha"],
+    "question_variants": [
+      "What are the four phases of the menstrual cycle and how do they work?",
+      "Explain the hormonal changes across the menstrual, follicular, ovulation, and luteal phases.",
+      "How does my menstrual cycle work from day 1 to day 28?"
+    ],
+    "answer": "A typical menstrual cycle lasts between 21 and 35 days (averaging 28 days) and is orchestrated by four distinct hormonal phases: (1) Menstrual Phase (Days 1–5): Estrogen and progesterone are at their lowest levels while the uterine lining sheds. Energy is naturally inward, making rest and gentle warmth ideal. (2) Follicular Phase (Days 6–12): Follicle-stimulating hormone (FSH) prompts ovarian follicles to mature, and rising estrogen boosts stamina, focus, and mood. (3) Ovulation Phase (Days 13–15): A surge in luteinizing hormone (LH) triggers the release of a mature egg; estrogen peaks, often bringing high social and physical energy. (4) Luteal Phase (Days 16–28): Progesterone rises to stabilize the uterine lining and slightly elevates basal body temperature; if pregnancy does not occur, hormone levels fall, which can trigger premenstrual symptoms before the next cycle begins.",
+    "indian_wellness_tip": "In Ayurvedic wellness, the Menstrual phase is governed by Vata (requiring warmth and rest), the Follicular phase by Kapha (building strength), and the Ovulatory-to-Luteal transition by Pitta (requiring cooling, grounding foods).",
+    "safety_warning": "Educational information only. This assistant does not diagnose reproductive conditions or prescribe medication. Consult a qualified gynecologist if your cycles are consistently shorter than 21 days or longer than 35 days.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Menstruation in Girls and Adolescents",
+        "url": "https://www.acog.org/womens-health/faqs/your-first-period-menstruation"
+      },
+      {
+        "name": "U.S. Office on Women's Health (OWH) – Your Menstrual Cycle",
+        "url": "https://www.womenshealth.gov/menstrual-cycle/your-menstrual-cycle"
+      }
+    ]
+  },
+  {
+    "id": "kb_002",
+    "topic": "Menstrual Phase Care & Iron-Rich Period Nutrition",
+    "category": "period_nutrition",
+    "intent": "cycle_phase_nutrition",
+    "cycle_phases": ["Menstrual"],
+    "dietary_tags": ["Vegetarian", "Vegan", "Non-Vegetarian"],
+    "keywords": ["menstrual phase diet", "iron rich foods", "period nutrition", "what to eat on period", "khichdi", "ragi", "dates", "vitamin c", "anemia"],
+    "question_variants": [
+      "What should I eat during my period or menstrual phase?",
+      "Which iron-rich Indian foods help replenish blood loss during menstruation?",
+      "Recommend a nourishing vegetarian or vegan diet for my menstrual phase."
+    ],
+    "answer": "During menstruation (Days 1–5), your body loses iron and fluids while prostaglandins stimulate uterine contractions. Prioritizing warm, easily digestible, iron- and magnesium-rich meals supports recovery and comfort. Pair plant-based non-heme iron sources with Vitamin C (such as lemon juice or amla) to significantly improve iron absorption. Stay well hydrated with warm water and herbal infusions, and minimize excess caffeine, ultra-processed salty snacks, and icy beverages that can aggravate digestive sluggishness.",
+    "indian_wellness_tip": "Vegetarian/Vegan options: Warm moong dal khichdi, ragi (finger millet) porridge, palak (spinach) dal with a squeeze of lemon, roasted chana, black sesame (til) seeds, soaked raisins, and dates. Non-Vegetarian options: Lightly spiced chicken soup, egg curry, or steamed fish rich in omega-3 fatty acids.",
+    "safety_warning": "Dietary suggestions are for general nutritional wellness and are not a substitute for medical treatment of iron-deficiency anemia. Never start high-dose iron supplements without a blood test and physician guidance.",
+    "sources": [
+      {
+        "name": "ICMR–National Institute of Nutrition (NIN) – Dietary Guidelines for Indians",
+        "url": "https://www.nin.res.in/dietaryguidelines/pdfjs/locale/DGI07052024P.pdf"
+      },
+      {
+        "name": "NIH Office of Dietary Supplements – Iron Fact Sheet for Health Professionals",
+        "url": "https://ods.od.nih.gov/factsheets/Iron-HealthProfessional/"
+      }
+    ]
+  },
+  {
+    "id": "kb_003",
+    "topic": "Luteal Phase Nutrition & Managing Premenstrual Cravings",
+    "category": "period_nutrition",
+    "intent": "cycle_phase_nutrition",
+    "cycle_phases": ["Luteal"],
+    "dietary_tags": ["Vegetarian", "Vegan", "Non-Vegetarian"],
+    "keywords": ["luteal phase diet", "what should i eat during luteal phase", "sugar cravings", "magnesium", "complex carbs", "vitamin b6", "before period food"],
+    "question_variants": [
+      "What should I eat during my luteal phase?",
+      "How can I manage sugar cravings and low energy in the week before my period?",
+      "Best foods for the luteal phase to reduce PMS and bloating."
+    ],
+    "answer": "During the luteal phase (Days 16–28), elevated progesterone increases resting metabolic rate slightly and can heighten sensitivity to blood sugar dips, leading to intense carbohydrate or chocolate cravings. Eating regular, balanced meals rich in complex carbohydrates, dietary fiber, magnesium, calcium, and Vitamin B6 helps stabilize blood glucose and support serotonin synthesis. Reducing excess sodium helps minimize premenstrual water retention.",
+    "indian_wellness_tip": "Enjoy roasted sweet potato (shakarkandi), brown rice or jowar roti with mixed vegetable sabzi, pumpkin and sunflower seeds, walnuts, banana with almond butter, and warm turmeric or chamomile infusion in the evening.",
+    "safety_warning": "Nutritional advice is educational only and does not replace individualized medical nutrition therapy. Consult a healthcare professional for persistent metabolic or blood sugar concerns.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Premenstrual Syndrome Nutrition",
+        "url": "https://www.acog.org/womens-health/faqs/premenstrual-syndrome"
+      },
+      {
+        "name": "Harvard T.H. Chan School of Public Health – The Nutrition Source: Magnesium",
+        "url": "https://nutritionsource.hsph.harvard.edu/magnesium/"
+      }
+    ]
+  },
+  {
+    "id": "kb_004",
+    "topic": "Follicular & Ovulation Phase Nutrition for Hormone Support",
+    "category": "period_nutrition",
+    "intent": "cycle_phase_nutrition",
+    "cycle_phases": ["Follicular", "Ovulation"],
+    "dietary_tags": ["Vegetarian", "Vegan", "Non-Vegetarian"],
+    "keywords": ["follicular phase diet", "ovulation nutrition", "seed cycling", "flaxseeds", "cruciferous vegetables", "antioxidants", "estrogen metabolism"],
+    "question_variants": [
+      "What foods are best during the follicular and ovulation phases?",
+      "How does nutrition support rising estrogen and ovulation?",
+      "What is seed cycling and which foods support the follicular phase?"
+    ],
+    "answer": "In the follicular phase (Days 6–12), rising estrogen enhances insulin sensitivity and energy. Light, fresh, nutrient-dense foods with lean proteins, sprouted legumes, fermented probiotics, and cruciferous vegetables (broccoli, cabbage, cauliflower) support healthy estrogen metabolism in the liver. During ovulation (Days 13–15), antioxidant-rich fruits, hydration, zinc, and omega-3 fatty acids support cellular health and vascular circulation.",
+    "indian_wellness_tip": "Include sprouted moong salad, curd/buttermilk (chaas) or plant-based yogurt, ground flaxseeds (alsi) and pumpkin seeds, pomegranate, sweet berries, and lightly sautéed leafy greens.",
+    "safety_warning": "For educational wellness purposes only. Dietary habits support general health and are not a medical treatment for ovulatory disorders.",
+    "sources": [
+      {
+        "name": "Academy of Nutrition and Dietetics – Eating Right for Women's Health",
+        "url": "https://www.eatright.org/health/wellness/healthful-habits"
+      },
+      {
+        "name": "NIH National Library of Medicine – Diet and Female Reproductive Health",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/"
+      }
+    ]
+  },
+  {
+    "id": "kb_005",
+    "topic": "Menstrual Cramps (Dysmenorrhea): Causes & Natural Relief",
+    "category": "cramps",
+    "intent": "period_pain_relief",
+    "cycle_phases": ["Menstrual"],
+    "keywords": ["cramps", "period pain", "dysmenorrhea", "prostaglandins", "heating pad", "ginger tea", "ajwain", "lower back pain", "pelvic pain"],
+    "question_variants": [
+      "What causes cramps during my period?",
+      "How can I relieve menstrual cramps naturally at home?",
+      "Why does my lower stomach and back ache on the first days of menstruation?"
+    ],
+    "answer": "Primary dysmenorrhea (menstrual cramps) is caused by natural hormone-like lipids called prostaglandins released from the shedding uterine lining. Prostaglandins trigger rhythmic uterine muscle contractions to expel menstrual blood; higher prostaglandin levels cause stronger contractions that temporarily reduce oxygen supply to uterine muscle tissue, producing cramping in the lower abdomen, back, and thighs. Evidence-based non-pharmacological relief includes applying continuous topical heat (a warm heating pad or hot water bottle at ~40°C on the lower abdomen), gentle pelvic stretching, staying hydrated, and consuming ginger (Zingiber officinale), which clinical studies show helps modulate prostaglandin synthesis.",
+    "indian_wellness_tip": "Sip warm ginger and ajwain (carom seed) tea with a pinch of jaggery, and gently massage the lower abdomen with warm sesame (til) oil to soothe Vata-driven muscle tension.",
+    "safety_warning": "This is educational guidance and not a medical diagnosis or prescription. If menstrual cramps suddenly worsen, last beyond your period, or prevent daily activities, consult a gynecologist to rule out secondary causes such as endometriosis or fibroids.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Dysmenorrhea: Painful Periods",
+        "url": "https://www.acog.org/womens-health/faqs/dysmenorrhea-painful-periods"
+      },
+      {
+        "name": "National Health Service (NHS UK) – Period Pain",
+        "url": "https://www.nhs.uk/conditions/period-pain/"
+      }
+    ]
+  },
+  {
+    "id": "kb_006",
+    "topic": "Premenstrual Syndrome (PMS) & Physical Symptom Management",
+    "category": "pms",
+    "intent": "symptom_tracking_help",
+    "cycle_phases": ["Luteal"],
+    "keywords": ["pms", "premenstrual syndrome", "bloating", "water retention", "breast tenderness", "sore breasts", "fatigue", "acne", "headache"],
+    "question_variants": [
+      "Why do I get bloating, breast tenderness, and fatigue before my period?",
+      "How can I reduce premenstrual water retention and hormonal acne?",
+      "What causes physical PMS symptoms in the luteal phase?"
+    ],
+    "answer": "Premenstrual Syndrome (PMS) encompasses physical and emotional symptoms occurring during the late luteal phase (5–11 days before menses) and resolving shortly after bleeding starts. Fluctuations in estrogen and progesterone influence aldosterone and fluid balance, leading to abdominal bloating and cyclical breast tenderness (mastalgia). Progesterone peaks also stimulate sebaceous glands, contributing to premenstrual jawline acne. Helpful strategies include reducing dietary salt and refined sugar, wearing a supportive bra, drinking plenty of water, getting 7–8 hours of sleep, and engaging in 30 minutes of moderate aerobic movement.",
+    "indian_wellness_tip": "For bloating and sluggish digestion, sip warm Cumin-Coriander-Fennel (CCF / Jeera-Dhaniya-Saunf) tea after meals. For Pitta-related skin breakouts and headaches, favor cooling cucumber, tender coconut water, and fresh coriander.",
+    "safety_warning": "Educational wellness advice only. Never self-medicate with diuretics or hormonal drugs. Seek medical evaluation for non-cyclical breast lumps, localized breast pain, or severe migraines with aura.",
+    "sources": [
+      {
+        "name": "U.S. Office on Women's Health (OWH) – Premenstrual Syndrome (PMS)",
+        "url": "https://www.womenshealth.gov/menstrual-cycle/premenstrual-syndrome"
+      },
+      {
+        "name": "Mayo Clinic – Premenstrual Syndrome (PMS) Symptoms and Causes",
+        "url": "https://www.mayoclinic.org/diseases-conditions/premenstrual-syndrome/symptoms-causes/syc-20376780"
+      }
+    ]
+  },
+  {
+    "id": "kb_007",
+    "topic": "Hormonal Headaches & Menstrual Migraines",
+    "category": "pms",
+    "intent": "symptom_tracking_help",
+    "cycle_phases": ["Luteal", "Menstrual"],
+    "keywords": ["headache", "migraine", "hormonal headache", "menstrual migraine", "estrogen drop", "throbbing head"],
+    "question_variants": [
+      "What causes menstrual headaches and hormonal migraines?",
+      "Why do I get a headache right before or at the start of my period?",
+      "Natural ways to soothe a period headache."
+    ],
+    "answer": "Menstrual headaches and migraines are closely linked to the rapid withdrawal of estrogen in the 2 days before menstruation and the first 3 days of bleeding. Because estrogen regulates pain-processing pathways and serotonin receptors in the brain, its sharp decline can trigger vascular sensitivity. Preventive wellness habits include maintaining consistent meal times (avoiding fasting or hypoglycemia), staying well hydrated, keeping a consistent sleep-wake schedule, applying a cool compress to the forehead or neck, and practicing progressive muscle relaxation in a dimly lit room.",
+    "indian_wellness_tip": "Avoid overly spicy, fermented, or fried foods that aggravate Pitta heat before your period, and rest your eyes from bright screens in the evening.",
+    "safety_warning": "Educational information only. Consult a physician promptly if you experience a sudden severe thunderclap headache, visual aura, numbness, fever, or stiff neck.",
+    "sources": [
+      {
+        "name": "National headache Foundation / NHS – Hormone Headaches",
+        "url": "https://www.nhs.uk/conditions/hormone-headaches/"
+      },
+      {
+        "name": "Johns Hopkins Medicine – Menstrual Migraines",
+        "url": "https://www.hopkinsmedicine.org/health/conditions-and-diseases/headache"
+      }
+    ]
+  },
+  {
+    "id": "kb_008",
+    "topic": "Polycystic Ovary Syndrome (PCOS): Signs, Awareness & Lifestyle",
+    "category": "pcos",
+    "intent": "pcos_endometriosis_info",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["pcos", "pcod", "polycystic ovary syndrome", "signs of pcos", "insulin resistance", "irregular periods", "hirsutism", "androgen", "ovarian cysts"],
+    "question_variants": [
+      "What are the signs and symptoms of PCOS?",
+      "How does insulin resistance relate to PCOS and irregular ovulation?",
+      "What lifestyle and diet habits help support PCOS management?"
+    ],
+    "answer": "Polycystic Ovary Syndrome (PCOS) is a common endocrine and metabolic condition affecting reproductive-aged women. Clinical evaluation typically uses the Rotterdam criteria, which look for at least two of three features: (1) irregular, infrequent, or absent ovulation/periods; (2) clinical or biochemical signs of excess androgens (such as persistent jawline acne, excess facial/body hair growth, or scalp hair thinning); and (3) polycystic-appearing ovaries on ultrasound. Insulin resistance is frequently present, causing elevated insulin levels that stimulate ovarian androgen production. Evidence-based lifestyle foundations include balanced low-glycemic-index meals (pairing high-fiber vegetables and protein with complex carbs), regular resistance and aerobic exercise to improve insulin sensitivity, restorative sleep, and stress management.",
+    "indian_wellness_tip": "Swap refined white rice and maida for high-fiber whole grains like bajra, jowar, ragi, and steel-cut oats; include methi (fenugreek) seeds, cinnamon, leafy greens, and protein-rich dals in daily meals.",
+    "safety_warning": "HerCare AI cannot diagnose PCOS or prescribe medications (such as metformin, oral contraceptives, or inositol). Always consult an endocrinologist or gynecologist for blood tests, ultrasound evaluation, and personalized medical care.",
+    "sources": [
+      {
+        "name": "World Health Organization (WHO) – Polycystic Ovary Syndrome Fact Sheet",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/polycystic-ovary-syndrome"
+      },
+      {
+        "name": "NIH Eunice Kennedy Shriver National Institute of Child Health and Human Development (NICHD) – PCOS",
+        "url": "https://www.nichd.nih.gov/health/topics/pcos"
+      }
+    ]
+  },
+  {
+    "id": "kb_009",
+    "topic": "Endometriosis, Uterine Fibroids & Thyroid Links to Menstrual Health",
+    "category": "endometriosis",
+    "intent": "pcos_endometriosis_info",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["endometriosis", "fibroids", "uterine fibroids", "thyroid", "hypothyroidism", "adenomyosis", "chronic pelvic pain", "heavy bleeding"],
+    "question_variants": [
+      "How do I know if I have endometriosis or uterine fibroids?",
+      "Can thyroid disorders affect my menstrual cycle?",
+      "What is the difference between normal period cramps and endometriosis pain?"
+    ],
+    "answer": "Endometriosis occurs when tissue similar to the uterine lining grows outside the uterus, causing chronic inflammation, severe progressive dysmenorrhea, deep pelvic pain, pain during bowel movements or urination during menses, and sometimes fertility challenges. Uterine fibroids (leiomyomas) are benign muscular growths in the uterine wall that commonly cause heavy or prolonged menstrual bleeding and pelvic pressure. Thyroid disorders also directly affect menstrual regularity: hypothyroidism often leads to heavier, prolonged, or infrequent periods and fatigue, whereas hyperthyroidism can cause lighter or absent periods.",
+    "indian_wellness_tip": "Focus on an anti-inflammatory diet rich in colourful vegetables, omega-3 sources (flaxseeds, walnuts), and turmeric (curcumin) with black pepper while tracking pain severity and flow patterns in your cycle log to share with your doctor.",
+    "safety_warning": "Severe pelvic pain that worsens over time or does not respond to standard care is not 'just a bad period.' Only a qualified physician can diagnose endometriosis, fibroids, or thyroid disease through clinical examination, imaging, or lab tests.",
+    "sources": [
+      {
+        "name": "World Health Organization (WHO) – Endometriosis Fact Sheet",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/endometriosis"
+      },
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Endometriosis & Uterine Fibroids",
+        "url": "https://www.acog.org/womens-health/faqs/endometriosis"
+      }
+    ]
+  },
+  {
+    "id": "kb_010",
+    "topic": "Cycle-Synced Exercise & Yoga Across Menstrual Phases",
+    "category": "exercise_yoga",
+    "intent": "exercise_yoga_guidance",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["exercise", "yoga", "workout", "cycle syncing", "stretching", "strength training", "cardio", "pranayama", "childs pose", "cat cow"],
+    "question_variants": [
+      "What kind of exercise or yoga is best during my period?",
+      "How should I sync my workout routine with my four cycle phases?",
+      "Which yoga poses help relieve menstrual cramps and pelvic tension?"
+    ],
+    "answer": "Aligning movement intensity with your hormonal rhythm helps optimize stamina and recovery: (1) Menstrual Phase (Days 1–5): Listen to your energy levels; gentle walking, mobility work, and restorative yoga ease pelvic congestion without spiking cortisol. Helpful yoga asanas include Balasana (Child's Pose), Marjaryasana–Bitilasana (Cat-Cow), Supta Baddha Konasana (Reclined Bound Angle), and Viparita Karani (Legs-Up-the-Wall). (2) Follicular Phase (Days 6–12): Rising estrogen supports muscle recovery—an ideal window for strength training, brisk cardio, and learning new workouts. (3) Ovulation Phase (Days 13–15): Stamina peaks; high-energy workouts, running, or group fitness classes feel rewarding (ensure proper warm-ups, as high estrogen can slightly increase ligament laxity). (4) Luteal Phase (Days 16–28): As progesterone rises and body temperature increases, transition toward moderate strength training, Pilates, swimming, and calming Yin yoga.",
+    "indian_wellness_tip": "Combine gentle yoga stretches with Nadi Shodhana (alternate nostril breathing) or Bhramari (humming bee breath) for 5–10 minutes daily to calm the autonomic nervous system.",
+    "safety_warning": "Always adjust exercise intensity to how your body feels on the day. Stop immediately if you experience dizziness, chest pain, or sharp abdominal pain.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Exercise During Menstruation",
+        "url": "https://www.acog.org/womens-health/faqs/exercise-and-fitness"
+      },
+      {
+        "name": "NIH National Center for Complementary and Integrative Health (NCCIH) – Yoga: What You Need To Know",
+        "url": "https://www.nccih.nih.gov/health/yoga-what-you-need-to-know"
+      }
+    ]
+  },
+  {
+    "id": "kb_011",
+    "topic": "Mood Swings, PMS Anxiety & Emotional Wellness Support",
+    "category": "mood",
+    "intent": "pms_mood_support",
+    "cycle_phases": ["Luteal", "Menstrual"],
+    "keywords": ["mood swings", "anxious", "anxiety", "irritated", "irritable", "sad", "tearful", "crying", "stressed", "pmdd", "serotonin", "emotional"],
+    "question_variants": [
+      "Why do I feel anxious, sad, and irritable right before my period?",
+      "How do hormone fluctuations cause PMS mood swings?",
+      "How can I support my mental and emotional wellbeing during the luteal phase?"
+    ],
+    "answer": "Emotional sensitivity, anxiety, tearfulness, and irritability in the late luteal phase are biologically rooted in how ovarian hormones interact with brain neurotransmitters. Estrogen and progesterone influence serotonin, dopamine, and GABA (the brain's calming neurotransmitter) via the progesterone metabolite allopregnanolone. When hormone levels drop sharply before menstruation, temporary shifts in neurotransmitter signaling can heighten stress reactivity. Supportive evidence-based habits include: daily sunlight exposure and gentle outdoor walks, eating complex carbohydrates with protein every 3–4 hours, practicing slow diaphragmatic breathing (4-second inhale, 6-second exhale), prioritizing 8 hours of sleep, and journaling mood patterns in your tracker.",
+    "indian_wellness_tip": "In the evening, enjoy a soothing cup of chamomile tea or warm milk (dairy or almond) infused with a tiny pinch of nutmeg (jaiphal) and cardamom (elaichi) to ground Vata and cool Pitta.",
+    "safety_warning": "If premenstrual mood changes cause severe depression, hopelessness, panic attacks, or thoughts of self-harm (which may indicate Premenstrual Dysphoric Disorder / PMDD), please reach out to a mental health professional or physician immediately.",
+    "sources": [
+      {
+        "name": "National Institute of Mental Health (NIMH) & Office on Women's Health – Premenstrual Dysphoric Disorder (PMDD)",
+        "url": "https://www.womenshealth.gov/menstrual-cycle/premenstrual-syndrome/premenstrual-dysphoric-disorder-pmdd"
+      },
+      {
+        "name": "Harvard Health Publishing – Treating Premenstrual Syndrome and PMDD",
+        "url": "https://www.health.harvard.edu/womens-health"
+      }
+    ]
+  },
+  {
+    "id": "kb_012",
+    "topic": "Irregular, Late, or Missed Periods: Causes & When to Seek Care",
+    "category": "general_menstrual_wellness",
+    "intent": "irregular_cycle_query",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["irregular period", "late period", "missed period", "delayed period", "spotting", "cycle length", "oligomenorrhea", "stress delay"],
+    "question_variants": [
+      "Why is my period late or irregular this month?",
+      "What causes missed periods besides pregnancy?",
+      "How much cycle length variation is considered normal?"
+    ],
+    "answer": "In adults, a typical menstrual cycle ranges from 21 to 35 days, and occasional variations of up to 7–9 days can happen. Common non-pregnancy causes of a late, skipped, or irregular period include: (1) High psychological or physical stress, travel, or disrupted circadian sleep (which elevates cortisol and temporarily suppresses GnRH and ovulation); (2) Significant weight fluctuations, restrictive dieting, or intense athletic training; (3) Endocrine conditions such as PCOS or thyroid dysfunction; (4) Perimenopause or the first few years after menarche; and (5) Certain medications or recent changes in hormonal contraception.",
+    "indian_wellness_tip": "Support hypothalamic-pituitary-ovarian (HPO) axis balance by eating warm, regular meals on time, avoiding extreme crash diets, and maintaining a consistent bedtime before 10:30 PM.",
+    "safety_warning": "Educational information only. If your period is more than 1–2 weeks late and pregnancy is possible, take a home pregnancy test. Consult a gynecologist if you miss three consecutive periods (amenorrhea) or experience unexplained bleeding between periods.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Abnormal Uterine Bleeding",
+        "url": "https://www.acog.org/womens-health/faqs/abnormal-uterine-bleeding"
+      },
+      {
+        "name": "Cleveland Clinic – Irregular Periods (Abnormal Menstruation)",
+        "url": "https://my.clevelandclinic.org/health/diseases/14633-abnormal-menstruation-periods"
+      }
+    ]
+  },
+  {
+    "id": "kb_013",
+    "topic": "Ovulation Signs, Fertile Window & Basal Body Temperature",
+    "category": "menstrual_cycle_phases",
+    "intent": "ovulation_fertility_info",
+    "cycle_phases": ["Ovulation"],
+    "keywords": ["ovulation", "fertile window", "cervical mucus", "basal body temperature", "lh surge", "mittelschmerz", "egg white discharge", "day 14"],
+    "question_variants": [
+      "How do I know when I am ovulating during my cycle?",
+      "What are the physical signs of ovulation and the fertile window?",
+      "How does cervical mucus and basal body temperature change at ovulation?"
+    ],
+    "answer": "Ovulation typically occurs about 12–16 days before the start of your next period (around Day 14 in a 28-day cycle, or Day 16 in a 30-day cycle). The fertile window spans roughly 6 days: the 5 days leading up to ovulation (due to sperm lifespan) plus the day of ovulation itself (an egg survives 12–24 hours after release). Key biological signs include: (1) Cervical mucus becoming clear, stretchy, and slippery like raw egg whites under peak estrogen; (2) A surge in Luteinizing Hormone (LH) 24–36 hours prior to egg release; (3) A slight sustained rise (0.2°C–0.5°C / 0.4°F–1.0°F) in waking Basal Body Temperature (BBT) *after* ovulation driven by progesterone; and (4) Mild, brief one-sided lower pelvic twinges (mittelschmerz).",
+    "indian_wellness_tip": "During the ovulatory Pitta rise, stay hydrated with coconut water, sweet seasonal fruits, and cooling mint-coriander chutney.",
+    "safety_warning": "Calendar and symptom tracking estimate ovulation but are not guaranteed methods of contraception or fertility diagnosis. Consult a reproductive health specialist for family planning or fertility guidance.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Fertility Awareness-Based Methods",
+        "url": "https://www.acog.org/womens-health/faqs/fertility-awareness-based-methods-of-family-planning"
+      },
+      {
+        "name": " Wilcox AJ et al., NEJM / NIH – Timing of the Fertile Window in the Menstrual Cycle",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC27529/"
+      }
+    ]
+  },
+  {
+    "id": "kb_014",
+    "topic": "Menstrual Hygiene, Sleep & Daily Wellness Habits",
+    "category": "general_menstrual_wellness",
+    "intent": "greeting_general_wellness",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["menstrual hygiene", "sanitary pad", "menstrual cup", "tampon", "sleep", "hydration", "daily wellness", "hercare ai"],
+    "question_variants": [
+      "What are the best menstrual hygiene practices during my period?",
+      "How often should I change my sanitary pad, tampon, or menstrual cup?",
+      "Hello HerCare AI, what can you help me with?"
+    ],
+    "answer": "Welcome to HerCare AI, your intelligent women's wellness companion! I can help you understand your menstrual cycle phases, period cramp remedies, Indian cycle-synced nutrition, PCOS and endometriosis awareness, exercise & yoga routines, and PMS mood support. For healthy menstrual hygiene: change sanitary pads every 4–6 hours (and tampons every 4–8 hours, never exceeding 8 hours to prevent Toxic Shock Syndrome), or empty and rinse a medical-grade silicone menstrual cup every 8–12 hours. Wash the external vulvar area gently with plain warm water (avoiding scented douches or harsh soaps that disrupt beneficial vaginal lactobacilli), wear breathable cotton underwear, drink 2–2.5 liters of water daily, and aim for 7.5–8 hours of consistent sleep.",
+    "indian_wellness_tip": "Sun-drying reusable cloth pads thoroughly in direct sunlight provides natural UV sanitation, and sterilization of menstrual cups in boiling water for 5–7 minutes between cycles keeps them hygienic.",
+    "safety_warning": "HerCare AI provides evidence-based educational information and never diagnoses conditions or prescribes medication. If you notice unusual vaginal odor, itching, burning, or pelvic pain, consult a healthcare provider.",
+    "sources": [
+      {
+        "name": "Centers for Disease Control and Prevention (CDC) – Menstrual Hygiene",
+        "url": "https://www.cdc.gov/hygiene/personal-hygiene/menstrual.html"
+      },
+      {
+        "name": "UNICEF – Guidance on Menstrual Health and Hygiene",
+        "url": "https://www.unicef.org/documents/guidance-menstrual-health-and-hygiene"
+      }
+    ]
+  },
+  {
+    "id": "kb_015",
+    "topic": "Urgent Red-Flag Menstrual & Pelvic Symptoms (Medical Emergency Warning)",
+    "category": "general_menstrual_wellness",
+    "intent": "emergency_medical_warning",
+    "cycle_phases": ["Menstrual", "Follicular", "Ovulation", "Luteal"],
+    "keywords": ["soaking pad every hour", "heavy bleeding", "fainting", "dizzy", "severe pain", "high fever", "large clots", "emergency", "ruptured cyst", "toxic shock"],
+    "question_variants": [
+      "I am soaking through a pad every hour and feeling dizzy and faint.",
+      "When should I go to the emergency room for severe period bleeding or pelvic pain?",
+      "What are the red-flag symptoms that require urgent gynecological care?"
+    ],
+    "answer": "⚠️ URGENT MEDICAL SAFETY WARNING: Please seek immediate in-person medical evaluation or emergency care if you experience any of the following red-flag symptoms: (1) Soaking through one or more sanitary pads or tampons every hour for two consecutive hours; (2) Passing blood clots larger than a quarter (or golf-ball sized) accompanied by dizziness, lightheadedness, shortness of breath, or fainting; (3) Sudden, severe, or stabbing abdominal/pelvic pain on one or both sides (which can signal an ovarian cyst rupture, ovarian torsion, or ectopic pregnancy); (4) High fever, chills, vomiting, or foul-smelling discharge alongside pelvic pain or tampon use; or (5) Heavy vaginal bleeding or severe cramping if there is any possibility of pregnancy.",
+    "indian_wellness_tip": "While arranging immediate medical care, lie down with your legs slightly elevated if you feel lightheaded, sip oral rehydration fluids if conscious and not nauseated, and ensure a family member or friend accompanies you to the hospital.",
+    "safety_warning": "CRITICAL: HerCare AI is an educational tool and CANNOT handle medical emergencies, provide diagnoses, or prescribe medication. Please contact emergency medical services or visit the nearest hospital emergency department immediately.",
+    "sources": [
+      {
+        "name": "American College of Obstetricians and Gynecologists (ACOG) – Heavy Menstrual Bleeding Warning Signs",
+        "url": "https://www.acog.org/womens-health/faqs/heavy-menstrual-bleeding"
+      },
+      {
+        "name": "National Health Service (NHS UK) – Heavy Periods & When to Get Urgent Help",
+        "url": "https://www.nhs.uk/conditions/heavy-periods/"
+      }
+    ]
+  }
+]

@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
-import { fetch } from "expo/fetch";
-import React, { useRef, useState } from "react";
+import { fetch as expoFetch } from "expo/fetch";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -12,17 +13,44 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
+import { discoverWorkingApiBase, resolveApiBase } from "@/utils/api";
 import type { ChatMessage } from "@/context/AppContext";
 
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? process.env.EXPO_PUBLIC_DOMAIN.startsWith("http")
-    ? process.env.EXPO_PUBLIC_DOMAIN
-    : `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-  : "";
+const SESSION_STORAGE_KEY = "hercare_chat_session_id";
+
+export const API_BASE = resolveApiBase();
+
+function createSessionId(): string {
+  return `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function parseSseLines(
+  lines: string[],
+  onDelta: (deltaText: string) => void
+): boolean {
+  let sawDone = false;
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line.startsWith("data:")) continue;
+    const data = line.slice(5).trim();
+    if (!data) continue;
+    if (data === "[DONE]") {
+      sawDone = true;
+      continue;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      const delta = parsed.choices?.[0]?.delta?.content;
+      if (typeof delta === "string" && delta.length > 0) {
+        onDelta(delta);
+      }
+    } catch {}
+  }
+  return sawDone;
+}
 
 
 
@@ -80,13 +108,78 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 export default function ChatScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { chatHistory, addChatMessage, clearChatHistory } = useApp();
+  const {
+    chatHistory,
+    addChatMessage,
+    clearChatHistory,
+    currentPhase,
+    healthProfile,
+  } = useApp();
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [streamingText, setStreamingText] = useState("");
+  const [sessionId, setSessionId] = useState<string>("");
+  const [connectionState, setConnectionState] = useState<
+    "checking" | "online" | "offline"
+  >("checking");
+  const [activeApiBase, setActiveApiBase] = useState<string>(API_BASE);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
+
+  const checkBackendConnection = useCallback(async () => {
+    setConnectionState("checking");
+    try {
+      const { online, baseUrl } = await discoverWorkingApiBase();
+      setActiveApiBase(baseUrl);
+      if (online) {
+        setConnectionState("online");
+        setErrorBanner(null);
+      } else {
+        setConnectionState("offline");
+      }
+    } catch {
+      setConnectionState("offline");
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const storedSession = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+        if (storedSession) {
+          setSessionId(storedSession);
+        } else {
+          const freshId = createSessionId();
+          setSessionId(freshId);
+          await AsyncStorage.setItem(SESSION_STORAGE_KEY, freshId);
+        }
+      } catch {
+        setSessionId(createSessionId());
+      }
+    })();
+    checkBackendConnection();
+  }, [checkBackendConnection]);
+
+  const handleClearChat = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const oldSessionId = sessionId;
+    const nextSessionId = createSessionId();
+    setSessionId(nextSessionId);
+    setErrorBanner(null);
+    clearChatHistory();
+    try {
+      await AsyncStorage.setItem(SESSION_STORAGE_KEY, nextSessionId);
+      if (oldSessionId) {
+        const base = activeApiBase || resolveApiBase();
+        await globalThis.fetch(
+          `${base}/api/chat/session/${encodeURIComponent(oldSessionId)}`,
+          { method: "DELETE" }
+        );
+      }
+    } catch {}
+  };
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -96,6 +189,16 @@ export default function ChatScreen() {
     setInput("");
     setLoading(true);
     setStreamingText("");
+    setErrorBanner(null);
+
+    let activeSessionId = sessionId;
+    if (!activeSessionId) {
+      activeSessionId = createSessionId();
+      setSessionId(activeSessionId);
+      try {
+        await AsyncStorage.setItem(SESSION_STORAGE_KEY, activeSessionId);
+      } catch {}
+    }
 
     const userMsg: Omit<ChatMessage, "id"> = {
       role: "user",
@@ -109,22 +212,67 @@ export default function ChatScreen() {
       { role: "user" as const, content: text },
     ];
 
+    let targetBase = activeApiBase || resolveApiBase();
+    if (connectionState !== "online") {
+      const discovered = await discoverWorkingApiBase();
+      targetBase = discovered.baseUrl;
+      setActiveApiBase(discovered.baseUrl);
+      if (discovered.online) {
+        setConnectionState("online");
+      }
+    }
+
+    const requestPayload = {
+      messages,
+      session_id: activeSessionId,
+      cycle_phase:
+        currentPhase && currentPhase !== "Unknown"
+          ? currentPhase
+          : undefined,
+      dietary_preference: healthProfile.dietType || undefined,
+    };
+
     try {
-      const response = await fetch(`${API_BASE}/api/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ messages }),
-      });
+      let response: Response;
+      try {
+        response = (await expoFetch(`${targetBase}/api/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/event-stream",
+          },
+          body: JSON.stringify({
+            ...requestPayload,
+            stream: true,
+          }),
+        })) as unknown as Response;
+      } catch {
+        response = await globalThis.fetch(`${targetBase}/api/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            ...requestPayload,
+            stream: false,
+          }),
+        });
+      }
 
       if (!response.ok) {
-        let errMsg = "AI Chat failed to respond. Please make sure the server is configured properly.";
+        let errMsg =
+          "AI Chat failed to respond. Please make sure the server is configured properly.";
         try {
-          const errJson = await response.json() as { error?: string; detail?: string };
+          const errJson = (await response.json()) as {
+            error?: string;
+            detail?: string;
+          };
           if (errJson.detail) {
             try {
-              const detailObj = JSON.parse(errJson.detail) as { error?: { message?: string } };
+              const detailObj = JSON.parse(errJson.detail) as {
+                error?: { message?: string };
+              };
               if (detailObj.error?.message) {
                 errMsg = detailObj.error.message;
               } else {
@@ -137,6 +285,7 @@ export default function ChatScreen() {
             errMsg = errJson.error;
           }
         } catch {}
+        setErrorBanner(errMsg);
         addChatMessage({
           role: "assistant",
           content: `⚠️ API Error: ${errMsg}`,
@@ -146,30 +295,45 @@ export default function ChatScreen() {
         return;
       }
 
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      setConnectionState("online");
       let accumulated = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6).trim();
-            if (data === "[DONE]") continue;
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content;
-              if (delta) {
-                accumulated += delta;
-                setStreamingText(accumulated);
-              }
-            } catch {}
-          }
+      if (response.body && typeof response.body.getReader === "function") {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let lineBuffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          lineBuffer += decoder.decode(value, { stream: true });
+          const lines = lineBuffer.split("\n");
+          lineBuffer = lines.pop() ?? "";
+          parseSseLines(lines, (delta) => {
+            accumulated += delta;
+            setStreamingText(accumulated);
+          });
+        }
+
+        if (lineBuffer.trim()) {
+          parseSseLines([lineBuffer], (delta) => {
+            accumulated += delta;
+            setStreamingText(accumulated);
+          });
+        }
+      } else {
+        const rawText = await response.text();
+        if (rawText.includes("data:")) {
+          parseSseLines(rawText.split("\n"), (delta) => {
+            accumulated += delta;
+          });
+        } else {
+          try {
+            const parsedJson = JSON.parse(rawText) as { response?: string };
+            if (parsedJson.response) {
+              accumulated = parsedJson.response;
+            }
+          } catch {}
         }
       }
 
@@ -180,10 +344,14 @@ export default function ChatScreen() {
           timestamp: new Date().toISOString(),
         });
       }
-    } catch (err) {
+    } catch {
+      setConnectionState("offline");
+      const connMsg = `Unable to reach HerCare AI server at ${targetBase}. Check that the FastAPI backend is running on port 5001.`;
+      setErrorBanner(connMsg);
       addChatMessage({
         role: "assistant",
-        content: "I'm having trouble connecting right now. Please check your internet connection and try again.",
+        content:
+          "I'm having trouble connecting right now. Please check your internet connection and try again.",
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -206,10 +374,22 @@ export default function ChatScreen() {
 
   const reversed = [...allMessages].reverse();
 
+  const statusDotColor =
+    connectionState === "online"
+      ? "#5BAD7F"
+      : connectionState === "checking"
+        ? "#E8A44A"
+        : "#E8689A";
+
+  const statusText =
+    connectionState === "online"
+      ? "Your health companion · Online"
+      : connectionState === "checking"
+        ? "Connecting to HerCare AI..."
+        : "Offline · Tap to reconnect";
+
   return (
-    <View
-      style={{ flex: 1, backgroundColor: colors.background, }}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View
         style={[
@@ -222,27 +402,68 @@ export default function ChatScreen() {
         ]}
       >
         <View style={styles.headerLeft}>
-          <View style={[styles.headerAvatar, { backgroundColor: colors.lavenderLight }]}>
+          <View
+            style={[
+              styles.headerAvatar,
+              { backgroundColor: colors.lavenderLight },
+            ]}
+          >
             <Feather name="heart" size={18} color={colors.lavender} />
           </View>
           <View>
             <Text style={[styles.headerTitle, { color: colors.foreground }]}>
               HerCare AI
             </Text>
-            <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-              Your health companion
-            </Text>
+            <Pressable
+              onPress={
+                connectionState === "offline"
+                  ? checkBackendConnection
+                  : undefined
+              }
+              style={styles.statusRow}
+            >
+              <View
+                style={[styles.statusDot, { backgroundColor: statusDotColor }]}
+              />
+              <Text
+                style={[styles.headerSub, { color: colors.mutedForeground }]}
+              >
+                {statusText}
+              </Text>
+            </Pressable>
           </View>
         </View>
         {chatHistory.length > 0 && (
           <Pressable
-            onPress={clearChatHistory}
+            onPress={handleClearChat}
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Feather name="trash-2" size={18} color={colors.mutedForeground} />
           </Pressable>
         )}
       </View>
+
+      {errorBanner && (
+        <Pressable
+          onPress={checkBackendConnection}
+          style={[
+            styles.errorBanner,
+            {
+              backgroundColor: colors.pinkLight,
+              borderColor: colors.pink + "55",
+            },
+          ]}
+        >
+          <Feather name="alert-circle" size={15} color={colors.pink} />
+          <Text
+            style={[styles.errorBannerText, { color: colors.foreground }]}
+            numberOfLines={2}
+          >
+            {errorBanner}
+          </Text>
+          <Feather name="refresh-cw" size={14} color={colors.pink} />
+        </Pressable>
+      )}
 
       {/* Messages */}
       <FlatList
@@ -382,6 +603,34 @@ const styles = StyleSheet.create({
   headerSub: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  errorBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 16,
   },
   messageList: {
     paddingHorizontal: 16,

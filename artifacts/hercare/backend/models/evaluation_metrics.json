@@ -1,0 +1,233 @@
+{
+  "model_name": "TF-IDF + Logistic Regression Intent Classifier",
+  "total_samples": 200,
+  "train_samples": 150,
+  "test_samples": 50,
+  "num_intents": 10,
+  "intents": [
+    "cycle_phase_nutrition",
+    "emergency_medical_warning",
+    "exercise_yoga_guidance",
+    "greeting_general_wellness",
+    "irregular_cycle_query",
+    "ovulation_fertility_info",
+    "pcos_endometriosis_info",
+    "period_pain_relief",
+    "pms_mood_support",
+    "symptom_tracking_help"
+  ],
+  "vocabulary_size": 1637,
+  "holdout_test_metrics": {
+    "accuracy": 0.86,
+    "precision_macro": 0.8698,
+    "recall_macro": 0.86,
+    "f1_score_macro": 0.8587,
+    "precision_weighted": 0.8698,
+    "recall_weighted": 0.86,
+    "f1_score_weighted": 0.8587
+  },
+  "cross_validation_5fold": {
+    "accuracy": 0.76,
+    "precision_macro": 0.7802,
+    "recall_macro": 0.76,
+    "f1_score_macro": 0.7582
+  },
+  "per_intent_metrics": {
+    "cycle_phase_nutrition": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 5
+    },
+    "emergency_medical_warning": {
+      "precision": 0.7143,
+      "recall": 1.0,
+      "f1_score": 0.8333,
+      "support": 5
+    },
+    "exercise_yoga_guidance": {
+      "precision": 0.8,
+      "recall": 0.8,
+      "f1_score": 0.8,
+      "support": 5
+    },
+    "greeting_general_wellness": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 5
+    },
+    "irregular_cycle_query": {
+      "precision": 0.8333,
+      "recall": 1.0,
+      "f1_score": 0.9091,
+      "support": 5
+    },
+    "ovulation_fertility_info": {
+      "precision": 1.0,
+      "recall": 0.8,
+      "f1_score": 0.8889,
+      "support": 5
+    },
+    "pcos_endometriosis_info": {
+      "precision": 1.0,
+      "recall": 0.8,
+      "f1_score": 0.8889,
+      "support": 5
+    },
+    "period_pain_relief": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 5
+    },
+    "pms_mood_support": {
+      "precision": 0.75,
+      "recall": 0.6,
+      "f1_score": 0.6667,
+      "support": 5
+    },
+    "symptom_tracking_help": {
+      "precision": 0.6,
+      "recall": 0.6,
+      "f1_score": 0.6,
+      "support": 5
+    }
+  },
+  "confusion_matrix": {
+    "labels": [
+      "cycle_phase_nutrition",
+      "emergency_medical_warning",
+      "exercise_yoga_guidance",
+      "greeting_general_wellness",
+      "irregular_cycle_query",
+      "ovulation_fertility_info",
+      "pcos_endometriosis_info",
+      "period_pain_relief",
+      "pms_mood_support",
+      "symptom_tracking_help"
+    ],
+    "matrix": [
+      [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        3
+      ]
+    ]
+  }
+}
